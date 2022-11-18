@@ -1,32 +1,54 @@
 import { PrimaryButton } from '@/components/Buttons/Button'
 import { TextField } from '@/components/TextFiled'
+import axios from 'axios'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
-import { useState } from 'react'
-
-
+import { useEffect, useState } from 'react'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Login = () => {
   const { push } = useRouter()
-  const [username, setUsername]= useState('')
-  const [password, setPassword]= useState('')
-
-
-  const  handleUsernameChange=(e?:Event)=>{
-    console.log(username)
-    setUsername((e?.target as HTMLInputElement)?.value)
+  const [email, setEmail]= useState('')
+  const [password, setPassword]= useState('');
+ 
+  const handleUsernameChange=(e?:Event)=>{
+    setEmail((e?.target as HTMLInputElement)?.value)
   }
-  const  handlePasswordChange=(e?:Event)=>{
-    console.log(password)
 
+  const handlePasswordChange=(e?:Event)=>{
     setPassword((e?.target as HTMLInputElement)?.value)
   }
   
 
 const handleSubmit=()=>{
-  console.log(username,password)
-  alert("yess")
+  if(email == ""||password == ""){
+    toast("Invalid Details!!")
+  }else{
+    axios.post("/api/login", {
+      email,
+      password
+    })
+    .then((response) => {
+      toast(response.data.message)
+      localStorage.setItem('token', response.data.token);
+      setTimeout(() => {
+        push('/')
+      }, 2000);
+    }).catch(err=>{
+      toast(err.response.data);
+    });
+  }
 }
+
+useEffect(()=>{
+ var tokenExists  = localStorage.getItem("token")
+ if(tokenExists){
+  push('/')
+ }else{
+  push('/login')
+ }
+},[])
 
   return (
     <>
@@ -52,8 +74,8 @@ const handleSubmit=()=>{
           className='w-max xs:px-10 md:px-32 py-20 border-t-4 rounded-lg border-blue-200 mx-auto'
         >
           <div className='flex flex-col flex-wrap gap-y-5'>
-            <TextField label='Enter Your email address:'value={username} onChange={() => {handleUsernameChange}} />
-            <TextField label='Enter Your Password:' value={password} onChange={() => {handlePasswordChange}} />
+            <TextField label='Enter Your email address:'value={email} onChange={handleUsernameChange} />
+            <TextField label='Enter Your Password:' value={password} onChange={handlePasswordChange} />
           </div>
 
           <div className='mt-7 flex items-center gap-x-2'>
@@ -64,6 +86,7 @@ const handleSubmit=()=>{
           </div>
         </div>
       </div>
+      <ToastContainer/>
     </>
   )
 }

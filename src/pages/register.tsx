@@ -3,7 +3,7 @@ import { TextField } from '@/components/TextFiled'
 import axios from 'axios'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -61,18 +61,25 @@ const Register = () => {
       username:registerUsername
     })
     .then((response) => {
-      console.log(response)
       toast(response.data);
-      // setTimeout(() => {
-      //   push('/login')
-      // }, 2000);
+      setTimeout(() => {
+        push('/login')
+      }, 2000);
     }).catch(err=>{
       toast(err.response.data);
-      
     });
       
   }
   }
+
+  useEffect(()=>{
+    var tokenExists  = localStorage.getItem("token")
+    if(tokenExists){
+     push('/')
+    }else{
+      push('/register')
+    }
+   },[])
   return (
     <>
       <div style={{ position: 'absolute', width: '100%' }}>

@@ -2,7 +2,7 @@ import Image from 'next/image'
 
 type Props = {
   text: string
-  onClick?: () => void
+  onClick?: (e?:Event) => void
   ghost?: boolean
   color?: string
   showArrow?: boolean

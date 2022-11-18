@@ -13,6 +13,13 @@ const Routes = [
 
 export const Header = () => {
   const { push } = useRouter()
+  const [token, setToken] = useState<string | null>("");
+
+
+  useEffect(()=>{
+    setToken(localStorage.getItem("token"))
+  })
+
 
   const [open, setOpen] = useState(false)
 
@@ -24,6 +31,11 @@ export const Header = () => {
       element?.setAttribute('style', 'overflow:shown')
     }
   }, [open])
+
+  const handleLogout=()=>{
+    localStorage.removeItem("token")
+    push('/')
+  }
   return (
     <>
       <div className='xs:hidden md:block'>
@@ -43,9 +55,13 @@ export const Header = () => {
               </a>
             ))}
             <div className='flex-row flex justify-between gap-x-4'>
+             {token ? <Button text='LOGOUT' onClick={handleLogout} />   :
+             <>
               <Button ghost={true} text='LOGIN' onClick={() => push('login')} />
-              <Button text='SIGNUP' onClick={() => push('register')} />
-            </div>
+              <Button text='SIGNUP' onClick={() => push('register')} />  
+              </>
+              }
+              </div>        
           </div>
         </div>
       </div>
