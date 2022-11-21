@@ -20,3 +20,23 @@ model User {
   createdAt DateTime @default(now())
 }
 
+
+
+model Price{
+  id        Int  @id @default(autoincrement())
+  plan_name String
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+
+model Price_details{
+  id        Int  @id @default(autoincrement())
+  ips       Int
+  price     Float
+  plan_id   Int
+  offer_details Int
+  total Int
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}

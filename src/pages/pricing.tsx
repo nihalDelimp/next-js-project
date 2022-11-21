@@ -20,8 +20,9 @@ type PricingList = {
 }
 
 const Pricing = () => {
-  const [selected, setSelected] = useState('1')
+  const [selected, setSelected] = useState(1)
   const [pricePlan, setPricePlan] = useState([])
+  const [priceCards, setPriceCards] = useState([])
   const [selectedIndex, setSelectedIndex] = useState(0)
 
   const plans = [
@@ -181,31 +182,37 @@ const Pricing = () => {
     ],
   }
 
-  useEffect(()=>{
-    axios.get("/api/price")
-    .then((response) => {
-      setPricePlan(response.data.data)
-      console.log(response.data.data,"PRICEEE DATA")
-      // console.log(response.data)
-    }).catch(err=>{
-      console.log(err.response.data);
-    });
-  },[])
+  useEffect(() => {
+    axios
+      .get('/api/price')
+      .then((response) => {
+        const pricingData = response.data.data.map((item: any) => {
+          return { key: item.id, text: item.plan_name }
+        })
+        setPricePlan(pricingData)
+        const pricePlanId = response.data.data[0].id
+        setSelected(pricePlanId)
+        getPricingCards(pricePlanId)
+        console.log(response.data.data, 'PRICEEE DATA')
+      })
+      .catch((err) => {
+        console.log(err.response.data)
+      })
+  }, [])
 
-
-  useEffect(()=>{
-    axios.post("/api/price_details",{
-      "id":2
-    })
-    .then((response) => {
-      setPricePlan(response.data.data)
-    console.log(response.data.data,"PRICEEE DETAILS DATA")
-
-      // console.log(response.data)
-    }).catch(err=>{
-      console.log(err.response.data);
-    });
-  },[])
+  const getPricingCards = async (num: number) => {
+    await axios
+      .post('/api/price_details', {
+        id: num,
+      })
+      .then((response) => {
+        setPriceCards(response.data.data)
+        console.log(response.data.data, 'PRICEEE DETAILS DATA')
+      })
+      .catch((err) => {
+        console.log(err.response.data)
+      })
+  }
 
   const GetSelectedPkg = () => {
     if (selected in pricingCards) {
@@ -216,6 +223,27 @@ const Pricing = () => {
     return { IPS: 0, Price: 0 }
   }
 
+  const handleSelectPlan = (id: number) => {
+    getPricingCards(id)
+    setSelected(id)
+    console.log('idPLANNNNNN', id)
+  }
+
+const pricingCardOffer  = (num : number) =>{
+  if(num > 0){
+    if(num < 100){
+      return { color: '#4AD918', per: num + '%' }
+     }
+     else if(num > 100){
+    return  { color: '#FFDA44', per: num  }
+     }
+  }
+  else {
+    return ;
+  }
+}
+
+  console.log('selected', selected)
   return (
     <Body backgroud>
       <div className='flex flex-col items-center my-20'>
@@ -229,42 +257,29 @@ const Pricing = () => {
       </div>
 
       <div className='flex justify-center'>
-        <GroupButton items={plans} selected={selected} setSelected={setSelected} />
+        <GroupButton items={pricePlan} selected={selected} setSelected={handleSelectPlan} />
       </div>
 
-      <div className='grid grid-cols-5 gap-y-5 gap-x-10 mt-20 grid-cols-5 lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-2 xs:place-items-center md:place-items-stretch xs:grid-cols-1 '>
-        {pricingCards[selected]?.map((c, index) => {
-          return (
-            <PricingCard
-              IPs={c.IPS}
-              Price={c.Price}
-              Save={c.Save}
-              Selected={index === selectedIndex}
-              onClick={() => {
-                setSelectedIndex(index)
-              }}
-            />
-          )
-        })}
-
-        {/* {pricePlan.map((item,index)=>{
- return (
-  <PricingCard
-    IPs={item?.ips}
-    Price={item?.price}
-    // Save={item.Save}
-    // Selected={index === selectedIndex}
-    // onClick={() => {
-    //   setSelectedIndex(index)
-    // }}
-  />)
-        })} */}
-
+      <div className='grid grid-cols-5 gap-y-5 gap-x-10 mt-20 lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-2 xs:place-items-center md:place-items-stretch xs:grid-cols-1 '>
+        {priceCards &&
+          priceCards.length > 0 &&
+          priceCards.map((item: any, index: number) => {
+            return (
+              <PricingCard
+                IPs={item.ips}
+                Price={item.price}
+                Save={pricingCardOffer(item.offer_details)}
+                Selected={index === selectedIndex}
+                onClick={() => {
+                  setSelectedIndex(index)
+                }}
+              />
+            )
+          })}
       </div>
-
       <div className='grid grid-cols-2 xs:grid-cols-1 md:grid-cols-2 mt-20'>
         <div className='xs:hidden md:block'>
-          <div className='grid grid-cols-2 grid-cols-2 xs:grid-cols-1 md:grid-cols-2 gap-x-20'>
+          <div className='grid grid-cols-2  xs:grid-cols-1 md:grid-cols-2 gap-x-20'>
             <div className='flex flex-col items-start xs:items-center md:items-start '>
               <IconList
                 list={[
@@ -334,11 +349,11 @@ const Pricing = () => {
         >
           <div className='flex items-center justify-between'>
             <DropDown
-              items={pricingCards[selected]?.map((c, index) => {
+              items={priceCards.map((item: any) => {
                 return {
-                  key: index.toString(),
-                  val: c.IPS.toString(),
-                  extra: c.Price.toString() + '/IP',
+                  key: item.id.toString(),
+                  val: item.ips.toString(),
+                  extra: item.price.toString() + '/IP',
                 }
               })}
               onChange={(val: number) => setSelectedIndex(val)}
@@ -377,10 +392,10 @@ const Pricing = () => {
             </div>
           </div>
 
-          <div className='flex flex-wrap gap-x-10 ' style={{ marginTop: '33px', width: '100%' }}>
+          {/* <div className='flex flex-wrap gap-x-10 ' style={{ marginTop: '33px', width: '100%' }}>
             <TextField label='Enter Your email address:' onChange={() => {}} />
             <TextField label='Enter Your Password:' onChange={() => {}} />
-          </div>
+          </div> */}
 
           <div style={{ marginTop: '21px' }}>
             <div style={{ fontSize: '13px' }}>
