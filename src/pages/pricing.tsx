@@ -5,8 +5,9 @@ import { IconList } from '@/components/DownloadBanner'
 import { DropDown } from '@/components/DropDown'
 import { TextField } from '@/components/TextFiled'
 import { Body } from '@/layouts/Body'
+import axios from 'axios'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 type PricingItem = {
   IPS: number
@@ -20,6 +21,7 @@ type PricingList = {
 
 const Pricing = () => {
   const [selected, setSelected] = useState('1')
+  const [pricePlan, setPricePlan] = useState([])
   const [selectedIndex, setSelectedIndex] = useState(0)
 
   const plans = [
@@ -179,6 +181,32 @@ const Pricing = () => {
     ],
   }
 
+  useEffect(()=>{
+    axios.get("/api/price")
+    .then((response) => {
+      setPricePlan(response.data.data)
+      console.log(response.data.data,"PRICEEE DATA")
+      // console.log(response.data)
+    }).catch(err=>{
+      console.log(err.response.data);
+    });
+  },[])
+
+
+  useEffect(()=>{
+    axios.post("/api/price_details",{
+      "id":2
+    })
+    .then((response) => {
+      setPricePlan(response.data.data)
+    console.log(response.data.data,"PRICEEE DETAILS DATA")
+
+      // console.log(response.data)
+    }).catch(err=>{
+      console.log(err.response.data);
+    });
+  },[])
+
   const GetSelectedPkg = () => {
     if (selected in pricingCards) {
       const d = pricingCards[selected]?.at(selectedIndex)
@@ -218,6 +246,20 @@ const Pricing = () => {
             />
           )
         })}
+
+        {/* {pricePlan.map((item,index)=>{
+ return (
+  <PricingCard
+    IPs={item?.ips}
+    Price={item?.price}
+    // Save={item.Save}
+    // Selected={index === selectedIndex}
+    // onClick={() => {
+    //   setSelectedIndex(index)
+    // }}
+  />)
+        })} */}
+
       </div>
 
       <div className='grid grid-cols-2 xs:grid-cols-1 md:grid-cols-2 mt-20'>
